@@ -1,36 +1,21 @@
 import { useCity } from "@/context/CityContext";
 import { getAQICategory, getHeatCategory, months } from "@/data/cities";
+import { getTreesForClimate } from "@/data/trees";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Thermometer, Wind, TreePine, Flame, Map, ArrowRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Thermometer, Wind, TreePine, Flame, Map, ArrowRight, Droplets, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
+  LineChart, Line, BarChart, Bar, AreaChart, Area,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
 
 function StatCard({
-  title,
-  value,
-  unit,
-  icon: Icon,
-  accent,
-  subtitle,
+  title, value, unit, icon: Icon, accent, subtitle, badge,
 }: {
-  title: string;
-  value: string | number;
-  unit: string;
-  icon: React.ElementType;
-  accent: string;
-  subtitle?: string;
+  title: string; value: string | number; unit: string;
+  icon: React.ElementType; accent: string; subtitle?: string; badge?: { label: string; color: string };
 }) {
   return (
     <Card className="relative overflow-hidden">
@@ -44,7 +29,14 @@ function StatCard({
           {value}
           <span className="text-sm font-normal text-muted-foreground ml-1">{unit}</span>
         </div>
-        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+        <div className="flex items-center gap-2 mt-1">
+          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+          {badge && (
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0" style={{ borderColor: badge.color, color: badge.color }}>
+              {badge.label}
+            </Badge>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -55,10 +47,10 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const aqiCat = getAQICategory(selectedCity.currentAQI);
   const heatCat = getHeatCategory(selectedCity.urbanHeatIndex);
+  const nativeTrees = getTreesForClimate(selectedCity.climate);
 
   const tempData = selectedCity.monthlyTemp.map((temp, i) => ({
-    month: months[i],
-    temp,
+    month: months[i], temp, aqi: selectedCity.monthlyAQI[i],
   }));
 
   const aqiBarColors = selectedCity.aqiBreakdown.map((item) => {
@@ -70,98 +62,68 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{selectedCity.name} Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Urban heat and air quality overview · {selectedCity.state}, India
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{selectedCity.name} Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Environmental overview · {selectedCity.state}, India · {selectedCity.climate} climate
+          </p>
+        </div>
+        <Badge variant="outline" className="text-xs">
+          {selectedCity.lat.toFixed(2)}°N, {selectedCity.lng.toFixed(2)}°E
+        </Badge>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Temperature"
-          value={selectedCity.currentTemp}
-          unit="°C"
-          icon={Thermometer}
-          accent="bg-heat-extreme"
-          subtitle={`Peak summer reading`}
-        />
-        <StatCard
-          title="Air Quality Index"
-          value={selectedCity.currentAQI}
-          unit="AQI"
-          icon={Wind}
-          accent="bg-primary"
-          subtitle={aqiCat.label}
-        />
-        <StatCard
-          title="Tree Cover"
-          value={selectedCity.treeCoverPercent}
-          unit="%"
-          icon={TreePine}
-          accent="bg-primary"
-          subtitle="Urban canopy density"
-        />
-        <StatCard
-          title="Urban Heat Index"
-          value={selectedCity.urbanHeatIndex}
-          unit="/10"
-          icon={Flame}
-          accent="bg-heat-high"
-          subtitle={heatCat.label}
-        />
+        <StatCard title="Temperature" value={selectedCity.currentTemp} unit="°C" icon={Thermometer}
+          accent="bg-heat-extreme" subtitle="Peak summer" badge={heatCat} />
+        <StatCard title="Air Quality Index" value={selectedCity.currentAQI} unit="AQI" icon={Wind}
+          accent="bg-primary" badge={aqiCat} />
+        <StatCard title="Tree Cover" value={selectedCity.treeCoverPercent} unit="%" icon={TreePine}
+          accent="bg-primary" subtitle={`${nativeTrees.length} native species available`} />
+        <StatCard title="Urban Heat Index" value={selectedCity.urbanHeatIndex} unit="/10" icon={Flame}
+          accent="bg-heat-high" badge={heatCat} />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Monthly Temperature Trend</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Temperature & AQI Trends</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={tempData}>
+              <AreaChart data={tempData}>
+                <defs>
+                  <linearGradient id="tempGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--heat-high))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--heat-high))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="month" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: 8,
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="temp"
-                  stroke="hsl(var(--heat-high))"
-                  strokeWidth={2}
-                  dot={{ fill: "hsl(var(--heat-high))", r: 3 }}
-                  name="Temp (°C)"
-                />
-              </LineChart>
+                <XAxis dataKey="month" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
+                <YAxis yAxisId="temp" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
+                <YAxis yAxisId="aqi" orientation="right" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
+                <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                <Area yAxisId="temp" type="monotone" dataKey="temp" stroke="hsl(var(--heat-high))" fill="url(#tempGrad)" strokeWidth={2} name="Temp (°C)" />
+                <Line yAxisId="aqi" type="monotone" dataKey="aqi" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name="AQI" strokeDasharray="4 4" />
+              </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">AQI Breakdown by Pollutant</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Pollutant Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={selectedCity.aqiBreakdown}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="label" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: 8,
-                  }}
-                />
+                <XAxis dataKey="label" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
+                <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
+                <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
                 <Bar dataKey="value" name="Concentration" radius={[4, 4, 0, 0]}>
                   {selectedCity.aqiBreakdown.map((_, i) => (
                     <Cell key={i} fill={aqiBarColors[i]} />
@@ -174,31 +136,25 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Access */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/heat-map")}>
-          <CardContent className="flex items-center justify-between p-6">
-            <div className="flex items-center gap-3">
-              <Map className="h-5 w-5 text-primary" />
-              <div>
-                <p className="font-medium">Interactive Heat Map</p>
-                <p className="text-sm text-muted-foreground">Visualize temperature & AQI zones</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { icon: Map, title: "Environmental Overlays", desc: "Heat & AQI map layers", path: "/heat-map" },
+          { icon: TreePine, title: "Virtual Tree Planner", desc: "Click-to-plant simulator", path: "/tree-planner" },
+          { icon: Activity, title: "Species Recommender", desc: "APTI & API scored trees", path: "/recommendations" },
+        ].map((item) => (
+          <Card key={item.path} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate(item.path)}>
+            <CardContent className="flex items-center justify-between p-5">
+              <div className="flex items-center gap-3">
+                <item.icon className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-medium text-sm">{item.title}</p>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+                </div>
               </div>
-            </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-          </CardContent>
-        </Card>
-        <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/tree-planner")}>
-          <CardContent className="flex items-center justify-between p-6">
-            <div className="flex items-center gap-3">
-              <TreePine className="h-5 w-5 text-primary" />
-              <div>
-                <p className="font-medium">Virtual Tree Planner</p>
-                <p className="text-sm text-muted-foreground">Plan and simulate plantation impact</p>
-              </div>
-            </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-          </CardContent>
-        </Card>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );
