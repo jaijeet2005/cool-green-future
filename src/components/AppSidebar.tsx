@@ -4,6 +4,7 @@ import {
   TreePine,
   Leaf,
   FileText,
+  Info,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -25,6 +26,7 @@ const navItems = [
   { title: "Tree Planner", url: "/tree-planner", icon: TreePine },
   { title: "Recommendations", url: "/recommendations", icon: Leaf },
   { title: "Reports", url: "/reports", icon: FileText },
+  { title: "About", url: "/about", icon: Info },
 ];
 
 export function AppSidebar() {
@@ -36,8 +38,8 @@ export function AppSidebar() {
             <TreePine className="h-5 w-5 text-sidebar-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-sidebar-primary">Urban Heat Mapper</h1>
-            <p className="text-[10px] text-sidebar-foreground/60">India Edition</p>
+            <h1 className="text-sm font-bold text-sidebar-primary">Urban Health Mapper</h1>
+            <p className="text-[10px] text-sidebar-foreground/60">Bio-Digital Twin · India</p>
           </div>
         </div>
       </SidebarHeader>
@@ -69,7 +71,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-sidebar-border">
         <p className="text-[10px] text-sidebar-foreground/40">
-          MVP v1.0 · Mock Data
+          HackSamarth 2026 · Team Simplex
         </p>
       </SidebarFooter>
     </Sidebar>
