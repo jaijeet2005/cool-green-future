@@ -2,7 +2,7 @@ import { useCity } from "@/context/CityContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { MapContainer, TileLayer, Circle, Popup, useMap } from "react-leaflet";
 import { Thermometer, Wind, TreePine } from "lucide-react";
 import "leaflet/dist/leaflet.css";
@@ -11,7 +11,9 @@ type OverlayType = "heat" | "aqi" | "canopy";
 
 function MapRecenter({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
-  map.setView([lat, lng], 12);
+  useEffect(() => {
+    map.setView([lat, lng], 12);
+  }, [map, lat, lng]);
   return null;
 }
 

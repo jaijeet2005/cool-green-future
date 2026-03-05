@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useCity } from "@/context/CityContext";
 import { getTreesForClimate, calculatePlantationImpact, TreeSpecies } from "@/data/trees";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +18,9 @@ interface PlantedTree {
 
 function MapRecenter({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
-  map.setView([lat, lng], 13);
+  useEffect(() => {
+    map.setView([lat, lng], 13);
+  }, [map, lat, lng]);
   return null;
 }
 
