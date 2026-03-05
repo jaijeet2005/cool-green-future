@@ -10,6 +10,8 @@ import HeatMap from "./pages/HeatMap";
 import TreePlanner from "./pages/TreePlanner";
 import Recommendations from "./pages/Recommendations";
 import Reports from "./pages/Reports";
+import GrowthProjection from "./pages/GrowthProjection";
+import CommunityTracker from "./pages/CommunityTracker";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +31,8 @@ const App = () => (
               <Route path="/tree-planner" element={<TreePlanner />} />
               <Route path="/recommendations" element={<Recommendations />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/growth-projection" element={<GrowthProjection />} />
+              <Route path="/community" element={<CommunityTracker />} />
               <Route path="/about" element={<About />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
