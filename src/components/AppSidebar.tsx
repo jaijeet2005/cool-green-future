@@ -5,6 +5,8 @@ import {
   Leaf,
   FileText,
   Info,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -25,6 +27,8 @@ const navItems = [
   { title: "Heat Map", url: "/heat-map", icon: Map },
   { title: "Tree Planner", url: "/tree-planner", icon: TreePine },
   { title: "Recommendations", url: "/recommendations", icon: Leaf },
+  { title: "Growth Projection", url: "/growth-projection", icon: TrendingUp },
+  { title: "Community", url: "/community", icon: Users },
   { title: "Reports", url: "/reports", icon: FileText },
   { title: "About", url: "/about", icon: Info },
 ];
